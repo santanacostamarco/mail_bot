@@ -12,7 +12,7 @@ class ApplicationController < ActionController::Base
         :read_only => false
     end
 
-    emails = Mail.find(keys: ["SUBJECT", "*"]) # keys: ["NOT", "SEEN"]
+    emails = CheckMailsJob.perform_now
 
     render html: emails.length
 
