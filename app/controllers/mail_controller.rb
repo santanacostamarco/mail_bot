@@ -1,5 +1,7 @@
 class MailController < ApplicationController
     require 'mail'
+    require 'net/imap'
+
     def config
         Mail.defaults do
             retriever_method :imap,
@@ -23,8 +25,11 @@ class MailController < ApplicationController
         end
     end
 
-
-
-    def show
+    def auth(login, password)
+        puts login
+        puts password
+        imap = Net::IMAP.new('imap.gmail.com', 993, usessl = true, certs = nil, verify = false)
+        imap.authenticate('PLAIN', login, password)
+        return true
     end
 end

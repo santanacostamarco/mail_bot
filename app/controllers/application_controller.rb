@@ -3,14 +3,9 @@ class ApplicationController < ActionController::Base
   def hello
     render html:  "teste"
     mail = MailController.new
-    if mail.config
-      Thread.new do
-        @mail_trd = Thread.current
-        loop do
-          puts mail.check
-          puts @mail_trd
-        end
-      end
+    if mail.auth("botnovahub@gmail.com", "B4l3$tr4")
+      puts "eeee"
     end
   end
+ 
 end
