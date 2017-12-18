@@ -7,7 +7,7 @@ end
 
 gem "mail"
 
-gem "whenever", :require => false
+gem 'sidekiq'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '~> 5.1.4'
