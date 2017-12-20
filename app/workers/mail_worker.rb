@@ -6,14 +6,13 @@
 #  config.redis = {db: 1}
 #end
 
+
 class MailWorker
   include Sidekiq::Worker
   
-  def perform(mail)
-    @mail = mail
+  def perform
     loop do
-      sleep 10
-      puts @mail
+      EmailModel.check
     end
   end
 end
