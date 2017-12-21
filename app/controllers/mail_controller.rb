@@ -1,6 +1,5 @@
 class MailController < ApplicationController
     require 'mail'
-
     require "net/http"
     require 'net/imap'  
   
@@ -11,24 +10,35 @@ class MailController < ApplicationController
     end
   
     def create
-      @@imap = Net::IMAP.new('imap.gmail.com', 993, usessl = true, certs = nil, verify = false)
-      return "create successfull"
+        begin
+            @@imap = Net::IMAP.new('imap.gmail.com', 993, usessl = true, certs = nil, verify = false)
+            return true
+        rescue => e
+            puts e
+            return false
+        end
     end
   
   # realiza a autenticação, ao instanciar
     def auth
       begin
         @@imap.authenticate('PLAIN', "botnovahub@gmail.com", "B4l3$tr4")
-        return "auth ok"
-      rescue => exeption
-        return exeption
+        return true
+      rescue => e
+        puts e
+        return false
       end
     end
   
   # Seleciona a caixa de emails
     def select_mailbox
-      @@imap.examine("INBOX")
-      return "caixa de entrada selecionada"
+        begin
+            @@imap.examine("INBOX")
+            return true
+        rescue => e
+            puts e
+            return false
+        end
     end
   
   # verifica a quantidade de emails no link /check

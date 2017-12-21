@@ -1,1 +1,16 @@
-<h1>teste</h1>
+<h1>Teste Email</h1>
+<% t  = MailController.new 
+if t.create 
+    if t.auth
+        if t.select_mailbox %>
+            <p> <%= t.check_for_mails %> </p>
+        <% else %>
+            </p> Caixa de email nao encontrada </p>
+        <% end
+    else %>
+        <p> Autenticação falhou, consulte o log do servidor </p>
+    <% end
+else %>
+    <p> Falha ao criar a instância, consulte o log do servidor </p>
+<% end %>
+
