@@ -43,11 +43,22 @@ class MailController < ApplicationController
   
   # verifica a quantidade de emails no link /check
     def check_for_mails
-      if @@imap.search(["NOT", "SEEN"]).length > 0
-       return "voce tem novos emails sua caixa"
-      else
-        return "caixa de emails vazia"
-      end
+        if @@imap.search(["NOT", "SEEN"]).length > 0
+            return true
+        else
+            return false
+        end
+    end
+
+    def get_mails_id
+        return @@imap.search(["NOT", "SEEN"])
+    end
+
+    def get_headers(mail_id)
+        return @@imap.fetch(mail_id, "ENVELOPE")[0].attr["ENVELOPE"]
+    end
+    def get_mails(mail_id)
+        return @@imap.fetch(mail_id,'RFC822')[0].attr['RFC822']
     end
 
 end
