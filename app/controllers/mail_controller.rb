@@ -1,28 +1,43 @@
 class MailController < ApplicationController
     require 'mail'
 
-    def config
-        Mail.defaults do
-            retriever_method :imap,
-            :address => "imap.gmail.com",
-            :port => 993,
-            :user_name => "botnovahub@gmail.com",
-            :password => "B4l3$tr4",
-            :enable_ssl => true,
-            :read_only => false
-        end
-        return true
+    require "net/http"
+    require 'net/imap'  
+  
+    http = Net::HTTP.new("localhost", "3000")
+    http.use_ssl = false
+  
+    def show
     end
-    
-    def check
-        emails = Mail.find(keys: ["NOT", "SEEN"]) # keys: ["NOT", "SEEN"] / ["SUBJECT", "*"]
-        qtd = emails.length
-        if qtd > 0
-            return "tem"
-        else
-            return "nao tem"
-        end
+  
+    def create
+      @@imap = Net::IMAP.new('imap.gmail.com', 993, usessl = true, certs = nil, verify = false)
+      return "create successfull"
+    end
+  
+  # realiza a autenticação, ao instanciar
+    def auth
+      begin
+        @@imap.authenticate('PLAIN', "botnovahub@gmail.com", "B4l3$tr4")
+        return "auth ok"
+      rescue => exeption
+        return exeption
+      end
+    end
+  
+  # Seleciona a caixa de emails
+    def select_mailbox
+      @@imap.examine("INBOX")
+      return "caixa de entrada selecionada"
+    end
+  
+  # verifica a quantidade de emails no link /check
+    def check_for_mails
+      if @@imap.search(["NOT", "SEEN"]).length > 0
+       return "voce tem novos emails sua caixa"
+      else
+        return "caixa de emails vazia"
+      end
     end
 
-    
 end
