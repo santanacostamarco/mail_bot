@@ -3,7 +3,8 @@
 <table border=1>
     <% t.get_mails_id.each do |mail_id|
     headers = t.get_headers(mail_id)
-    t.get_mails(mail_id) %>
+    email = Mail.read_from_string t.get_mails(mail_id) %>
+
     <tr>
         <td>Mail ID: <%= mail_id %> </td>
         <td> Subject: <%= headers.subject %> </td>
@@ -16,6 +17,10 @@
     <tr>
         <td> Email: <%= headers.from[0].mailbox %>@<%= headers.from[0].host %>  </td>
         <td> Reply to: <%= headers.reply_to[0].mailbox %>@<%= headers.reply_to[0].host %>  </td>
+    </tr>
+    <tr>
+        <td> Message </td>
+        <td colspan=2> <%= email.text_part.body.to_s %>
     </tr>
     <% end %>
 </table>

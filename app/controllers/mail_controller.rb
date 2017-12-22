@@ -1,10 +1,12 @@
 class MailController < ApplicationController
     require 'mail'
     require "net/http"
-    require 'net/imap'  
+    require 'net/imap'
   
     http = Net::HTTP.new("localhost", "3000")
     http.use_ssl = true
+    http.ssl_version = :TLSv1
+    http.ciphers = ['DES-CBC3-SHA']  
   
     def show
         t  = MailController.new 
@@ -52,7 +54,7 @@ class MailController < ApplicationController
   # Seleciona a caixa de emails
     def select_mailbox
         begin
-            @@imap.examine("INBOX")
+            @@imap.select("INBOX")
             return true
         rescue => e
             puts e
@@ -78,6 +80,9 @@ class MailController < ApplicationController
     end
     def get_mails(mail_id)
         return @@imap.fetch(mail_id,'RFC822')[0].attr['RFC822']
+    end
+    def delete_mail(mail_id)
+        #@@imap.store(mail_id, "+FLAGS", [:Deleted])
     end
 
 end
