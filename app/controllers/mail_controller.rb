@@ -10,7 +10,7 @@ class MailController < ApplicationController
   
     def show
         t  = MailController.new 
-        if t.create 
+        if t.init
             if t.auth
                 if t.select_mailbox
                     if t.check_for_mails 
@@ -30,7 +30,7 @@ class MailController < ApplicationController
         end
     end
   
-    def create
+    def init
         begin
             @@imap = Net::IMAP.new('imap.gmail.com', 993, usessl = true, certs = nil, verify = false)
             return true
@@ -84,5 +84,15 @@ class MailController < ApplicationController
     def delete_mail(mail_id)
         #@@imap.store(mail_id, "+FLAGS", [:Deleted])
     end
+
+    def create
+        @email = Email.new
+        @email.mail_id = 123123
+        @email.message = "sdhSUDHUASDNKASJ"
+        puts @email.attributes
+        @email.save
+    
+    end 
+
 
 end

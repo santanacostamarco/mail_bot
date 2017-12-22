@@ -3,8 +3,10 @@
 <table border=1>
     <% t.get_mails_id.each do |mail_id|
     headers = t.get_headers(mail_id)
-    email = Mail.read_from_string t.get_mails(mail_id) %>
-
+    email = Mail.read_from_string t.get_mails(mail_id) 
+    t.create
+    %>
+        
     <tr>
         <td>Mail ID: <%= mail_id %> </td>
         <td> Subject: <%= headers.subject %> </td>
@@ -22,5 +24,9 @@
         <td> Message </td>
         <td colspan=2> <%= email.text_part.body.to_s %>
     </tr>
+    <!--<p><%= headers.in_reply_to %></p>
+    <p><%= headers.message_id %></p>-->
+
     <% end %>
+    <% t.create %>
 </table>
