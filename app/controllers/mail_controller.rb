@@ -4,9 +4,28 @@ class MailController < ApplicationController
     require 'net/imap'  
   
     http = Net::HTTP.new("localhost", "3000")
-    http.use_ssl = false
+    http.use_ssl = true
   
     def show
+        t  = MailController.new 
+        if t.create 
+            if t.auth
+                if t.select_mailbox
+                    if t.check_for_mails 
+                        @mensagem = "existem emails na sua caixa"
+                        
+                    else
+                        @mensagem = "caixa de entrada vazia"
+                    end
+                else
+                    @mensagem = "caixa de email nao encontrada"
+                end
+            else
+                @mensagem = " a autenticação falhou"
+            end
+        else
+            @mensagem = "falha ao criar a instancia de mail de NET::IMAP"
+        end
     end
   
     def create
