@@ -9,13 +9,30 @@ class MailController < ApplicationController
     http.ciphers = ['DES-CBC3-SHA']  
   
     def show
+        @emails = Email.all
+    end
+
+    def main
         t  = MailController.new 
         if t.init
             if t.auth
                 if t.select_mailbox
                     if t.check_for_mails 
                         @mensagem = "existem emails na sua caixa"
-                        
+                        puts @mensagem
+                        t.get_mails_id.each do |mail_id|
+                            headers = t.get_headers(mail_id)
+                            email = Mail.read_from_string t.get_mails(mail_id)
+                            email_data = Array.new
+                            email_data << mail_id
+                            email_data << headers.subject
+                            email_data << headers.date
+                            email_data << headers.from[0].name
+                            email_data << "#{headers.from[0].mailbox}@#{headers.from[0].host}"
+                            email_data << "#{headers.reply_to[0].mailbox}@#{headers.reply_to[0].host}"
+                            email_data << email.text_part.body.to_s
+                            create(email_data)
+                        end
                     else
                         @mensagem = "caixa de entrada vazia"
                     end
@@ -54,7 +71,7 @@ class MailController < ApplicationController
   # Seleciona a caixa de emails
     def select_mailbox
         begin
-            @@imap.select("INBOX")
+            @@imap.examine("INBOX")
             return true
         rescue => e
             puts e
@@ -85,13 +102,17 @@ class MailController < ApplicationController
         #@@imap.store(mail_id, "+FLAGS", [:Deleted])
     end
 
-    def create
+    def create(data)
         @email = Email.new
-        @email.mail_id = 123123
-        @email.message = "sdhSUDHUASDNKASJ"
-        puts @email.attributes
+        @email.mail_id = data[0]
+        @email.subject = data[1]
+        @email.date = data[2]
+        @email.from_name = data[3]
+        @email.from_email = data[4]
+        @email.from_reply_to = data[5]
+        @email.message = data[6]
         @email.save
-    
+        return true
     end 
 
 
