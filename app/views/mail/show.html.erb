@@ -26,9 +26,6 @@
         <td><%= email.from_email %></td>
         <td><%= email.from_reply_to %></td>
         <td><%= email.message %></td>
-        <td><%= link_to 'Show', email %></td>
-        <td><%= link_to 'Edit', edit_email_path(email) %></td>
-        <td><%= link_to 'Destroy', email, method: :delete, data: { confirm: 'Are you sure?' } %></td>
       </tr>
     <% end %>
   </tbody>
@@ -36,4 +33,3 @@
 
 <br>
 
-<%= link_to 'New Email', new_email_path %>

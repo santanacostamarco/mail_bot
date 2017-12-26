@@ -17,9 +17,8 @@ class MailController < ApplicationController
         if t.init
             if t.auth
                 if t.select_mailbox
-                    if t.check_for_mails 
-                        @mensagem = "existem emails na sua caixa"
-                        puts @mensagem
+                    qtd = t.check_for_mails
+                    if qtd > 0
                         t.get_mails_id.each do |mail_id|
                             headers = t.get_headers(mail_id)
                             email = Mail.read_from_string t.get_mails(mail_id)
@@ -33,17 +32,28 @@ class MailController < ApplicationController
                             email_data << email.text_part.body.to_s
                             create(email_data)
                         end
+                        if qtd == 1
+                            flash[:notice] = "#{qtd} novo email foi salvo"
+                            redirect_to :action => "show"
+                        else
+                            flash[:notice] = "#{qtd} novos emails foram salvos"
+                            redirect_to :action => "show"
+                        end
                     else
-                        @mensagem = "caixa de entrada vazia"
+                        flash[:notice] = "Não há novos emails"
+                        redirect_to :action => "show"
                     end
                 else
-                    @mensagem = "caixa de email nao encontrada"
+                    flash[:notice] = "caixa de email nao encontrada"
+                    redirect_to :action => "show"
                 end
             else
-                @mensagem = " a autenticação falhou"
+                flash[:notice] = " a autenticação falhou"
+                redirect_to :action => "show"
             end
         else
-            @mensagem = "falha ao criar a instancia de mail de NET::IMAP"
+            flash[:notice] = "falha ao criar a instancia de mail de NET::IMAP"
+            redirect_to :action => "show"
         end
     end
   
@@ -71,7 +81,8 @@ class MailController < ApplicationController
   # Seleciona a caixa de emails
     def select_mailbox
         begin
-            @@imap.examine("INBOX")
+            # @@imap.examine("INBOX") # Seleciona a caixa de emails mas nao marca como 'seen'
+            @@imap.select("INBOX") # Seleciona a caixa de emails e marca como 'seen'
             return true
         rescue => e
             puts e
@@ -81,11 +92,8 @@ class MailController < ApplicationController
   
   # verifica a quantidade de emails no link /check
     def check_for_mails
-        if @@imap.search(["NOT", "SEEN"]).length > 0
-            return true
-        else
-            return false
-        end
+        return @@imap.search(["NOT", "SEEN"]).length
+        
     end
 
     def get_mails_id
