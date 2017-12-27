@@ -3,7 +3,7 @@ Rails.application.routes.draw do
   resources :mail
   
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
-  root "mail#show"
+   root "mail#show"
 
-  # get '/main', to: 'mail#main'
+   get '/main', to: 'mail#main'
 end
