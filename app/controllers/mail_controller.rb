@@ -3,10 +3,10 @@ class MailController < ApplicationController
     require "net/http"
     require 'net/imap'
   
-    http = Net::HTTP.new("localhost", "3000")
-    http.use_ssl = true
-    http.ssl_version = :TLSv1
-    http.ciphers = ['DES-CBC3-SHA']  
+    #http = Net::HTTP.new("localhost", "3000")
+    #http.use_ssl = true
+    #http.ssl_version = :TLSv1
+    #http.ciphers = ['DES-CBC3-SHA']  
   
     def show
         @emails = Email.all
