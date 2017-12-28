@@ -7,4 +7,5 @@ Rails.application.routes.draw do
 
    get '/recieve', to: 'mail#recieve'
    get '/reply', to: 'mail#reply'
+   get '/clear', to: 'mail#clear_queuee'
 end

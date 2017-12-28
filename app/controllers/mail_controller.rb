@@ -33,7 +33,7 @@ class MailController < ApplicationController
                             email_data << headers.from[0].name
                             email_data << "#{headers.from[0].mailbox}@#{headers.from[0].host}"
                             email_data << "#{headers.reply_to[0].mailbox}@#{headers.reply_to[0].host}"
-                            email_data << email.text_part.body.to_s
+                            email_data << clean_body(email.text_part.body.to_s)
                             create(email_data)
                         end
                         if qtd == 1
@@ -60,6 +60,17 @@ class MailController < ApplicationController
             redirect_to :action => "show"
         end
     end
+
+    def clean_body(body) # remover mensagens antigas de emails de respndidos
+        body = body.split("\n")
+        message = Array.new
+        body.each do |b|
+            if !b.include? ">"
+                message << b   
+            end
+        end
+        return message[0...-2].join
+    end
   
     def init
         begin
@@ -85,7 +96,7 @@ class MailController < ApplicationController
   # Seleciona a caixa de emails
     def select_mailbox
         begin
-            # @@imap.examine("INBOX") # Seleciona a caixa de emails mas nao marca como 'seen'
+            #@@imap.examine("INBOX") # Seleciona a caixa de emails mas nao marca como 'seen'
             @@imap.select("INBOX") # Seleciona a caixa de emails e marca como 'seen'
             return true
         rescue => e
@@ -122,8 +133,7 @@ class MailController < ApplicationController
         @email.from_name = data[3]
         @email.from_email = data[4]
         @email.from_reply_to = data[5]
-        #@email.message = data[6]
-        puts data[6]
+        @email.message = data[6]
         @email.save
         return true
     end 
@@ -174,6 +184,14 @@ class MailController < ApplicationController
         end
         return conversation
 
+    end
+
+    def clear_queuee
+        fila = Email.all
+        fila.each do |email|
+            @email = email
+            destroy()
+        end
     end
 
 
