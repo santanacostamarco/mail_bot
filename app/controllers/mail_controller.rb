@@ -74,7 +74,7 @@ class MailController < ApplicationController
         if have_reply
             return message[0...-2].join
         else
-            message.join
+            return message.join
         end
     end
   
