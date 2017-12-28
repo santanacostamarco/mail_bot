@@ -7,10 +7,6 @@ class MailController < ApplicationController
     @@email_bot = "botnovahub@gmail.com" # usar variavel de ambiente
     @@senha_bot = "B4l3$tr4" # usar variavel de ambiente
   
-    #http = Net::HTTP.new("localhost", "3000")
-    #http.use_ssl = true
-    #http.ssl_version = :TLSv1
-    #http.ciphers = ['DES-CBC3-SHA']  
   
     def show
         @emails = Email.all
@@ -157,7 +153,7 @@ class MailController < ApplicationController
 
     def reply #implementar resposta do bot 
         bot_answer = "Aguarde integração com o bot"
-        if Email.all.length > 0
+        if Email.all.length >= 1
             @email = Email.first
             mail_to = @email.from_reply_to
             conversation = get_conversation(@email)
@@ -174,11 +170,8 @@ class MailController < ApplicationController
             end
             destroy()
             mensagem = "#{conversation} respondido e removido da fila"
-        else
-            mensagem = "Não há emails na fila"
         end
-        flash[:notice] = mensagem
-        redirect_to :action => "show" and return
+        render html: "teste" #corrigir depois
     end
 
     def get_conversation(email)
