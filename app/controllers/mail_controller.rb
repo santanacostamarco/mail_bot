@@ -68,6 +68,7 @@ class MailController < ApplicationController
         body.each do |b|
             if !b.include? ">"
                 message << b
+            else
                 have_reply = true   
             end
         end
