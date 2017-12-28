@@ -16,7 +16,7 @@ class MailController < ApplicationController
         @emails = Email.all
     end
 
-    def main
+    def recieve
         t  = MailController.new 
         if t.init
             if t.auth
@@ -122,7 +122,8 @@ class MailController < ApplicationController
         @email.from_name = data[3]
         @email.from_email = data[4]
         @email.from_reply_to = data[5]
-        @email.message = data[6]
+        #@email.message = data[6]
+        puts data[6]
         @email.save
         return true
     end 
@@ -138,22 +139,29 @@ class MailController < ApplicationController
     end
 
     def reply #implementar resposta do bot 
-        bot_answer = "bla bbla bla bbla bla bbla bla bbla"
-        @email = Email.first
-        mail_to = @email.from_reply_to
-        conversation = get_conversation(@email)
-        if conversation == ""
-            mail_subject = "CONVERSA##{@email.mail_id} > #{@email.subject}"
+        bot_answer = "Aguarde integração com o bot"
+        if Email.all.length > 0
+            @email = Email.first
+            mail_to = @email.from_reply_to
+            conversation = get_conversation(@email)
+            if conversation == ""
+                mail_subject = "CONVERSA##{@email.mail_id} > #{@email.subject}"
+            else
+                mail_subject = @email.subject
+            end 
+            msg = "Subject: #{mail_subject}\n#{bot_answer}"
+            smtp = Net::SMTP.new('smtp.gmail.com', 587)
+            smtp.enable_starttls
+            smtp.start("gmail.com", @@email_bot, @@senha_bot, :login) do
+                smtp.send_message(msg, @@email_bot, mail_to)
+            end
+            destroy()
+            mensagem = "#{conversation} respondido e removido da fila"
         else
-            mail_subject = @email.subject
-        end 
-        msg = "Subject: #{mail_subject}\n#{bot_answer}"
-        smtp = Net::SMTP.new('smtp.gmail.com', 587)
-        smtp.enable_starttls
-        smtp.start("gmail.com", @@email_bot, @@senha_bot, :login) do
-            smtp.send_message(msg, @@email_bot, mail_to)
+            mensagem = "Não há emails na fila"
         end
-        destroy()
+        flash[:notice] = mensagem
+        redirect_to :action => "show" and return
     end
 
     def get_conversation(email)
@@ -165,11 +173,6 @@ class MailController < ApplicationController
             end
         end
         return conversation
-        #if subject.include? "CONVERSA#"
-        #    return subject
-        #else
-        #    return "CONVERSA##{email.mail_id}"
-        #end
 
     end
 
