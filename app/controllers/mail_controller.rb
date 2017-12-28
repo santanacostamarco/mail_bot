@@ -64,12 +64,18 @@ class MailController < ApplicationController
     def clean_body(body) # remover mensagens antigas de emails de respndidos
         body = body.split("\n")
         message = Array.new
+        have_reply = false
         body.each do |b|
             if !b.include? ">"
-                message << b   
+                message << b
+                have_reply = true   
             end
         end
-        return message[0...-2].join
+        if have_reply
+            return message[0...-2].join
+        else
+            message.join
+        end
     end
   
     def init
@@ -186,7 +192,7 @@ class MailController < ApplicationController
 
     end
 
-    def clear_queuee
+    def clear_queuee #limpar fila de emails
         fila = Email.all
         fila.each do |email|
             @email = email
