@@ -2,6 +2,10 @@ class MailController < ApplicationController
     require 'mail'
     require "net/http"
     require 'net/imap'
+    require 'net/smtp'
+
+    @@email_bot = "botnovahub@gmail.com" # usar variavel de ambiente
+    @@senha_bot = "B4l3$tr4" # usar variavel de ambiente
   
     #http = Net::HTTP.new("localhost", "3000")
     #http.use_ssl = true
@@ -70,7 +74,7 @@ class MailController < ApplicationController
   # realiza a autenticação, ao instanciar
     def auth
       begin
-        @@imap.authenticate('PLAIN', "botnovahub@gmail.com", "B4l3$tr4")
+        @@imap.authenticate('PLAIN', @@email_bot, @@senha_bot)
         return true
       rescue => e
         puts e
@@ -122,6 +126,54 @@ class MailController < ApplicationController
         @email.save
         return true
     end 
+
+    def destroy
+        begin
+            @email.destroy
+            flash[:notice] = "Email removido com sucesso"
+            redirect_to :action => "show"
+        rescue => e
+            puts e
+        end
+    end
+
+    def reply #implementar resposta do bot 
+        bot_answer = "bla bbla bla bbla bla bbla bla bbla"
+        @email = Email.first
+        mail_to = @email.from_reply_to
+        conversation = get_conversation(@email)
+        if conversation == ""
+            mail_subject = "CONVERSA##{@email.mail_id} > #{@email.subject}"
+        else
+            mail_subject = @email.subject
+        end 
+        msg = "Subject: #{mail_subject}\n#{bot_answer}"
+        smtp = Net::SMTP.new('smtp.gmail.com', 587)
+        smtp.enable_starttls
+        smtp.start("gmail.com", @@email_bot, @@senha_bot, :login) do
+            smtp.send_message(msg, @@email_bot, mail_to)
+        end
+        destroy()
+    end
+
+    def get_conversation(email)
+        subject_arr = email.subject.split
+        conversation = ""
+        subject_arr.each do |str|
+            if str.include? "CONVERSA#"
+                conversation = str
+            end
+        end
+        return conversation
+        #if subject.include? "CONVERSA#"
+        #    return subject
+        #else
+        #    return "CONVERSA##{email.mail_id}"
+        #end
+
+    end
+
+
 
 
 end

@@ -12,11 +12,6 @@
 
 ActiveRecord::Schema.define(version: 20171222193806) do
 
-  create_table "email_models", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
   create_table "emails", force: :cascade do |t|
     t.integer "mail_id"
     t.string "subject"
