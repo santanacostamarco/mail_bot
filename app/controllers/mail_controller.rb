@@ -5,7 +5,7 @@ class MailController < ApplicationController
     require 'net/smtp'
 
     @@email_bot = "botnovahub@gmail.com" # usar variavel de ambiente
-    @@senha_bot = "B4l3$tr4" # usar variavel de ambiente
+    @@senha_bot = "B4l3$tr4n0v4" # usar variavel de ambiente
   
   
     def show
@@ -144,8 +144,6 @@ class MailController < ApplicationController
     def destroy
         begin
             @email.destroy
-            flash[:notice] = "Email removido com sucesso"
-            redirect_to :action => "show"
         rescue => e
             puts e
         end
@@ -169,9 +167,13 @@ class MailController < ApplicationController
                 smtp.send_message(msg, @@email_bot, mail_to)
             end
             destroy()
-            mensagem = "#{conversation} respondido e removido da fila"
+            flash[:notice] = "O email foi respondido e removido da fila"
+            redirect_to :action => "show"
+        else
+            flash[:notice] = "Não há emails na fila"
+            redirect_to :action => "show"
         end
-        render html: "teste" #corrigir depois
+        
     end
 
     def get_conversation(email)
