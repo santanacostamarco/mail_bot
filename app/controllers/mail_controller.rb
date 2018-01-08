@@ -2,12 +2,31 @@ class MailController < ApplicationController
     require 'mail'
     require "net/http"
     require 'net/imap'
+    require 'net/pop'
     require 'net/smtp'
 
     @@email_bot = "botnovahub@gmail.com" # usar variavel de ambiente
     @@senha_bot = "B4l3$tr4n0v4" # usar variavel de ambiente
   
-  
+    def teste
+        if pop = Net::POP.new('pop.gmail.com')
+            pop.enable_ssl(OpenSSL::SSL::VERIFY_NONE)
+            pop.start(@@email_bot, @@senha_bot)
+            if pop.mails.empty?
+                puts "Nenhum email encontrado"
+            else
+                pop.each_mail do |mail|
+                    puts mail.header # tratar todo o email aqui e salvar no banco
+                    mail.delete
+                end
+            end
+        else
+            puts "not ok"
+        end
+        pop.finish
+    end
+
+  ############################################################################
     def show
         @emails = Email.all
     end
