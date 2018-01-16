@@ -10,10 +10,23 @@ class MailPopController < ApplicationController
                                         :password => email_config['email_password'],
                                         :enable_ssl => true
         end
-        Mail.all.each do |email|
-            email = email_fields(email)
-            create(email)
+        emails = Mail.all
+        quantity = emails.length
+        notice = ""
+        if quantity > 0
+            emails.each do |email|
+                email = email_fields(email)
+                create(email)
+            end
+            if quantity == 1
+                notice = "#{quantity} novo email"
+            else
+                notice = "#{quantity} novos emails"
+            end
+        else
+            notice = "Não há novos emails"
         end
+        flash[:notice] = notice
         redirect_to :controller => "mail", :action => "show"
     end
 

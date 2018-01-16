@@ -14,15 +14,22 @@ class MailImapController < ApplicationController
         imap.authenticate('PLAIN', email_config['email_address'], email_config['email_password'])
         #imap.examine("INBOX") # Seleciona a caixa de emails mas nao marca como 'seen'
         imap.select("INBOX") # Seleciona a caixa de emails e marca como 'seen'
-        if imap.search(["NOT", "SEEN"]).length > 0
+        quantity = imap.search(["NOT", "SEEN"]).length
+        if quantity > 0
             imap.search(["NOT", "SEEN"]).each do |mail_id|
                 email = email_fields(Mail.read_from_string(imap.fetch(mail_id,'RFC822')[0].attr['RFC822']))
                 create(email)
             end
+            if quantity == 1
+                notice = "#{quantity} novo email"
+            else
+                notice = "#{quantity} novos emails"
+            end
+        else
+            notice = "Não há novos emails"
         end
-
+        flash[:notice] = notice
         redirect_to :controller => "mail", :action => "show"
-
     end
 
     def email_fields(email)
