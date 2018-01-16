@@ -2,29 +2,33 @@ class MailPopController < ApplicationController
     require 'mail'
 
     def recieve
-        email_config = JSON.parse(File.read('config/email_config.json'))
-        Mail.defaults do
-            retriever_method :pop3,    :address => email_config['pop_address'],
-                                        :port => email_config['pop_port'],
-                                        :user_name => email_config['email_address'],
-                                        :password => email_config['email_password'],
-                                        :enable_ssl => true
-        end
-        emails = Mail.all
-        quantity = emails.length
-        notice = ""
-        if quantity > 0
-            emails.each do |email|
-                email = email_fields(email)
-                create(email)
+        begin
+            email_config = JSON.parse(File.read('config/email_config.json'))
+            Mail.defaults do
+                retriever_method :pop3,    :address => email_config['pop_address'],
+                                            :port => email_config['pop_port'],
+                                            :user_name => email_config['email_address'],
+                                            :password => email_config['email_password'],
+                                            :enable_ssl => true
             end
-            if quantity == 1
-                notice = "#{quantity} novo email"
+            emails = Mail.all
+            quantity = emails.length
+            notice = ""
+            if quantity > 0
+                emails.each do |email|
+                    email = email_fields(email)
+                    create(email)
+                end
+                if quantity == 1
+                    notice = "#{quantity} novo email"
+                else
+                    notice = "#{quantity} novos emails"
+                end
             else
-                notice = "#{quantity} novos emails"
+                notice = "Não há novos emails"
             end
-        else
-            notice = "Não há novos emails"
+        rescue => e
+            notice = e
         end
         flash[:notice] = notice
         redirect_to :controller => "mail", :action => "show"
@@ -38,7 +42,7 @@ class MailPopController < ApplicationController
             'date' => email.date,
             'from_name' => from[0..(from.index("<")-1)],
             'from_email' => from[(from.index("<")+1)..(from.length-2)],
-            'message' => message
+            'message' => message.strip
         }
         return fields
     end
