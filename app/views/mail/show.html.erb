@@ -2,7 +2,7 @@
 
 <h1>Emails</h1>
 
-<table>
+<table border=1>
   <thead>
     <tr>
       <th>Mail</th>
@@ -10,27 +10,27 @@
       <th>Date</th>
       <th>From name</th>
       <th>From email</th>
-      <th>From reply to</th>
       <th>Message</th>
-      <th colspan="3"></th>
+      <th>Satus</th>
     </tr>
   </thead>
 
   <tbody>
     <% @emails.each do |email| %>
       <tr>
-        <td><%= email.mail_id %></td>
+        <td><%= email.id %></td>
         <td><%= email.subject %></td>
         <td><%= email.date %></td>
         <td><%= email.from_name %></td>
         <td><%= email.from_email %></td>
-        <td><%= email.from_reply_to %></td>
         <td><%= email.message %></td>
+        <td><%= email.status %></td>
       </tr>
     <% end %>
   </tbody>
 </table>
-<p> <%= link_to "Buscar por novos emails", :action => :recieve %>  </p>
+<p> <%= link_to "Buscar via IMAP", :controller => :mail_imap, :action => :recieve %>  </p>
+<p> <%= link_to "Buscar via POP", :controller => :mail_pop, :action => :recieve %>  </p>
 <p> <%= link_to "Responder email da fila", :action => :reply %>  </p>
 <br>
 

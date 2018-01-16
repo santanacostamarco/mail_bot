@@ -15,6 +15,10 @@ gem 'coffee-rails', '~> 4.2'
 gem 'coffee-script-source', '1.8.0'
 gem 'turbolinks', '~> 5'
 gem 'jbuilder', '~> 2.5'
+#gem 'bcrypt', platforms: :ruby
+gem 'rest-client'
+
+gem 'watson-conversation', '~> 0.1.0'
 
 group :development, :test do
   gem 'sqlite3'

@@ -1,146 +1,37 @@
 class MailController < ApplicationController
     require 'mail'
-    require "net/http"
-    require 'net/imap'
-    require 'net/pop'
     require 'net/smtp'
-
-    @@email_bot = "botnovahub@gmail.com" # usar variavel de ambiente
-    @@senha_bot = "B4l3$tr4n0v4" # usar variavel de ambiente
-  
+    @@email_config = JSON.parse(File.read('config/email_config.json'))
     
+    
+    def index
+        if File.file?('config/email_config.json')
+            redirect_to :action => "show"
+        else
+            mail_config()
+        end
+    end
+
+    def mail_config
+        conf = {
+            "pop_address" => "pop.gmail.com",
+            "pop_port" => 995,
+            "imap_address" => "imap.gmail.com",
+            "imap_port" => 993,
+            "smtp_address" => "smtp.gmail.com",
+            "smtp_port" => 587,
+            "email_address" => "botnovahub@gmail.com",
+            "email_password" => "B4l3$tr4n0v4"
+        }
+        File.open("config/email_config.json","w") do |f|
+            f.write(conf.to_json)
+        end
+        redirect_to :action => "index"
+    end
+
     def show
         @emails = Email.all
     end
-
-    def recieve
-        t  = MailController.new 
-        if t.init
-            if t.auth
-                if t.select_mailbox
-                    qtd = t.check_for_mails
-                    if qtd > 0
-                        t.get_mails_id.each do |mail_id|
-                            headers = t.get_headers(mail_id)
-                            email = Mail.read_from_string t.get_mails(mail_id)
-                            email_data = Array.new
-                            email_data << mail_id
-                            email_data << headers.subject
-                            email_data << headers.date
-                            email_data << headers.from[0].name
-                            email_data << "#{headers.from[0].mailbox}@#{headers.from[0].host}"
-                            email_data << "#{headers.reply_to[0].mailbox}@#{headers.reply_to[0].host}"
-                            email_data << clean_body(email.text_part.body.to_s)
-                            create(email_data)
-                        end
-                        if qtd == 1
-                            flash[:notice] = "#{qtd} novo email foi salvo"
-                            redirect_to :action => "show"
-                        else
-                            flash[:notice] = "#{qtd} novos emails foram salvos"
-                            redirect_to :action => "show"
-                        end
-                    else
-                        flash[:notice] = "Não há novos emails"
-                        redirect_to :action => "show"
-                    end
-                else
-                    flash[:notice] = "caixa de email nao encontrada"
-                    redirect_to :action => "show"
-                end
-            else
-                flash[:notice] = " a autenticação falhou"
-                redirect_to :action => "show"
-            end
-        else
-            flash[:notice] = "falha ao criar a instancia de mail de NET::IMAP"
-            redirect_to :action => "show"
-        end
-    end
-
-    def clean_body(body) # remover mensagens antigas de emails de respndidos
-        body = body.split("\n")
-        message = Array.new
-        have_reply = false
-        body.each do |b|
-            if !b.include? ">"
-                message << b
-            else
-                have_reply = true   
-            end
-        end
-        if have_reply
-            return message[0...-2].join
-        else
-            return message.join
-        end
-    end
-  
-    def init
-        begin
-            @@imap = Net::IMAP.new('imap.gmail.com', 993, usessl = true, certs = nil, verify = false)
-            return true
-        rescue => e
-            puts e
-            return false
-        end
-    end
-  
-  # realiza a autenticação, ao instanciar
-    def auth
-      begin
-        @@imap.authenticate('PLAIN', @@email_bot, @@senha_bot)
-        return true
-      rescue => e
-        puts e
-        return false
-      end
-    end
-  
-  # Seleciona a caixa de emails
-    def select_mailbox
-        begin
-            #@@imap.examine("INBOX") # Seleciona a caixa de emails mas nao marca como 'seen'
-            @@imap.select("INBOX") # Seleciona a caixa de emails e marca como 'seen'
-            return true
-        rescue => e
-            puts e
-            return false
-        end
-    end
-  
-  # verifica a quantidade de emails no link /check
-    def check_for_mails
-        return @@imap.search(["NOT", "SEEN"]).length
-        
-    end
-
-    def get_mails_id
-        return @@imap.search(["NOT", "SEEN"])
-    end
-
-    def get_headers(mail_id)
-        return @@imap.fetch(mail_id, "ENVELOPE")[0].attr["ENVELOPE"]
-    end
-    def get_mails(mail_id)
-        return @@imap.fetch(mail_id,'RFC822')[0].attr['RFC822']
-    end
-    def delete_mail(mail_id)
-        #@@imap.store(mail_id, "+FLAGS", [:Deleted])
-    end
-
-    def create(data)
-        @email = Email.new
-        @email.mail_id = data[0]
-        @email.subject = data[1]
-        @email.date = data[2]
-        @email.from_name = data[3]
-        @email.from_email = data[4]
-        @email.from_reply_to = data[5]
-        @email.message = data[6]
-        @email.save
-        return true
-    end 
 
     def destroy
         begin
@@ -149,44 +40,59 @@ class MailController < ApplicationController
             puts e
         end
     end
+    def change_status
+        begin
+            if @email.status == "unseen"
+                @email.status = "seen"
+            else
+                @email.status = "unseen"
+            end
+            @email.save
+        rescue => e
+            puts e
+        end
+    end
+
+    def talk(email, conversation)
+        @conversa = Conversation.new.create
+        @conversa.talk(conversation, "") # uma linha vazia para iniciar a conversa.
+        answer = @conversa.talk(conversation, email.message.strip).to_s
+        output = get_answer_output(answer)
+        return output
+    end
+    
+    def get_answer_output(answer)
+        comeco = answer.index('[')
+        fim = answer.index(']')
+        return answer[(comeco+2)..(fim-2)]
+    end
 
     def reply #implementar resposta do bot 
-        bot_answer = "Aguarde integração com o bot"
-        if Email.all.length >= 1
-            @email = Email.first
-            mail_to = @email.from_reply_to
-            conversation = get_conversation(@email)
+        
+        if @email = Email.where(["status = ?", "unseen"]).first
+            mail_to = @email.from_email
+            conversation = set_conversation(@email)
             if conversation == ""
-                mail_subject = "CONVERSA##{@email.mail_id} > #{@email.subject}"
+                mail_subject = "CONVERSA##{@email.id} > #{@email.subject}"
             else
                 mail_subject = @email.subject
             end 
+            conversation = get_conversation(mail_subject)
+            bot_answer = talk(@email, conversation)
             msg = "Subject: #{mail_subject}\n#{bot_answer}"
-            smtp = Net::SMTP.new('smtp.gmail.com', 587)
+            smtp = Net::SMTP.new(@@email_config['smtp_address'], @@email_config['smtp_port']) # usar dados do config
             smtp.enable_starttls
-            smtp.start("gmail.com", @@email_bot, @@senha_bot, :login) do
-                smtp.send_message(msg, @@email_bot, mail_to)
+            smtp.start("gmail.com", @@email_config['email_address'], @@email_config['email_password'], :login) do # usar dados do config
+                smtp.send_message(msg, @@email_config['email_address'], mail_to)
             end
-            destroy()
+            change_status()
             flash[:notice] = "O email foi respondido e removido da fila"
             redirect_to :action => "show"
         else
-            flash[:notice] = "Não há emails na fila"
+            flash[:notice] = "Não há emails não lidos"
             redirect_to :action => "show"
         end
         
-    end
-
-    def get_conversation(email)
-        subject_arr = email.subject.split
-        conversation = ""
-        subject_arr.each do |str|
-            if str.include? "CONVERSA#"
-                conversation = str
-            end
-        end
-        return conversation
-
     end
 
     def clear_queuee #limpar fila de emails
@@ -195,9 +101,27 @@ class MailController < ApplicationController
             @email = email
             destroy()
         end
+        redirect_to :action => 'show'
     end
 
-
-
-
+    def set_conversation(email)
+        subject_arr = email.subject.split
+        conversation = ""
+        subject_arr.each do |str|
+            if str.include? "CONVERSA#"
+                conversation = str
+            end
+        end
+        return conversation
+    end
+    def get_conversation(subject)
+        subject_arr = subject.split
+        conversation = ""
+        subject_arr.each do |str|
+            if str.include? "CONVERSA#"
+                conversation = str
+            end
+        end
+        return conversation
+    end
 end

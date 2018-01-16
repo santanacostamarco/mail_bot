@@ -1,0 +1,2 @@
+class MailConfig < ApplicationRecord
+end

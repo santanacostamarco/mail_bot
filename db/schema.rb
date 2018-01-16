@@ -10,7 +10,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171222193806) do
+ActiveRecord::Schema.define(version: 20180115172730) do
+
+  create_table "conversations", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
 
   create_table "emails", force: :cascade do |t|
     t.integer "mail_id"
@@ -22,6 +27,28 @@ ActiveRecord::Schema.define(version: 20171222193806) do
     t.text "message"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "status"
+  end
+
+  create_table "mail_configs", force: :cascade do |t|
+    t.string "pop_address"
+    t.integer "pop_port"
+    t.string "imap_address"
+    t.integer "imap_port"
+    t.string "smtp_address"
+    t.string "smtp_port"
+    t.string "email_address"
+    t.string "email_password"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "users", force: :cascade do |t|
+    t.string "name"
+    t.string "username"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "password"
   end
 
 end
