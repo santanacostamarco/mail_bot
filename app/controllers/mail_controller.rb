@@ -12,7 +12,7 @@ class MailController < ApplicationController
         end
     end
 
-    def mail_config
+    def mail_config #futuramente isso pode ser um form de conf
         conf = {
             "pop_address" => "pop.gmail.com",
             "pop_port" => 995,
@@ -67,26 +67,29 @@ class MailController < ApplicationController
         return answer[(comeco+2)..(fim-2)]
     end
 
-    def reply #implementar resposta do bot 
-        
-        if @email = Email.where(["status = ?", "unseen"]).first
-            mail_to = @email.from_email
-            conversation = set_conversation(@email)
-            if conversation == ""
-                mail_subject = "CONVERSA##{@email.id} > #{@email.subject}"
-            else
-                mail_subject = @email.subject
-            end 
-            conversation = get_conversation(mail_subject)
-            bot_answer = talk(@email, conversation)
-            msg = "Subject: #{mail_subject}\n#{bot_answer}"
-            smtp = Net::SMTP.new(@@email_config['smtp_address'], @@email_config['smtp_port']) # usar dados do config
-            smtp.enable_starttls
-            smtp.start("gmail.com", @@email_config['email_address'], @@email_config['email_password'], :login) do # usar dados do config
-                smtp.send_message(msg, @@email_config['email_address'], mail_to)
+    def reply
+        @emails = Email.where(["status = ?", "unseen"]).all
+        if !@emails.empty?
+            @emails.each do |m|
+                @email = m
+                mail_to = @email.from_email
+                conversation = set_conversation(@email)
+                if conversation == ""
+                    mail_subject = "CONVERSA##{@email.id} > #{@email.subject}"
+                else
+                    mail_subject = @email.subject
+                end 
+                conversation = get_conversation(mail_subject)
+                bot_answer = talk(@email, conversation).to_s
+                msg = "Subject: #{mail_subject}\n#{bot_answer}"
+                smtp = Net::SMTP.new(@@email_config['smtp_address'], @@email_config['smtp_port']) # usar dados do config
+                smtp.enable_starttls
+                smtp.start("gmail.com", @@email_config['email_address'], @@email_config['email_password'], :login) do # usar dados do config
+                    smtp.send_message(msg, @@email_config['email_address'], mail_to)
+                end
+                change_status()
             end
-            change_status()
-            flash[:notice] = "O email foi respondido e removido da fila"
+            flash[:notice] = "Os emails foram respondidos"
             redirect_to :action => "show"
         else
             flash[:notice] = "Não há emails não lidos"

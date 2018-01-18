@@ -36,13 +36,13 @@ class MailPopController < ApplicationController
 
     def email_fields(email)
         from = email[:from].to_s
-        message = remove_older_messages(email.text_part.body.to_s.strip)
+        message = remove_older_messages(email.text_part.body.to_s)
         fields = {
             'subject' => email.subject,
             'date' => email.date,
             'from_name' => from[0..(from.index("<")-1)],
             'from_email' => from[(from.index("<")+1)..(from.length-2)],
-            'message' => message.strip
+            'message' => message
         }
         return fields
     end
@@ -59,9 +59,9 @@ class MailPopController < ApplicationController
             end
         end
         if have_reply
-            return message[0...-2].join
+            return message[0...-2].join(" ")
         else
-            return message.join
+            return message.join(" ")
         end
     end
 
@@ -71,7 +71,7 @@ class MailPopController < ApplicationController
         email.date = email_arr['date']
         email.from_name = email_arr['from_name']
         email.from_email = email_arr['from_email']
-        email.message = email_arr['message']
+        email.message = email_arr['message'].to_s.force_encoding("UTF-8")
         email.status = "unseen"
         email.save
     end
